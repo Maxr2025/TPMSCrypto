@@ -66,7 +66,7 @@ class TX_GFSK(gr.top_block, Qt.QWidget):
         ##################################################
         self.tx_mult = tx_mult = 1
         self.tx_freq = tx_freq = 433e6
-        self.sps = sps = 10
+        self.sps = sps = 100
         self.samp_rate_tx = samp_rate_tx = 10e6
         self.samp_rate = samp_rate = 386e3
 
@@ -89,7 +89,7 @@ class TX_GFSK(gr.top_block, Qt.QWidget):
         self.soapy_hackrf_sink_0.set_bandwidth(0, 0)
         self.soapy_hackrf_sink_0.set_frequency(0, tx_freq)
         self.soapy_hackrf_sink_0.set_gain(0, 'AMP', False)
-        self.soapy_hackrf_sink_0.set_gain(0, 'VGA', min(max(0, 0.0), 47.0))
+        self.soapy_hackrf_sink_0.set_gain(0, 'VGA', 20)
         self.rational_resampler_xxx_0 = filter.rational_resampler_ccf(
                 interpolation=int(samp_rate_tx),
                 decimation=int(samp_rate),

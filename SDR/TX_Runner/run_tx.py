@@ -4,6 +4,7 @@ import sys
 from PyQt5 import Qt
 from TX_GFSK_FUN import TX_GFSK
 import time
+import struct
 
 def transmit_data(data_bytes):
     """
@@ -37,8 +38,25 @@ if __name__ == '__main__':
         qapp = Qt.QApplication(sys.argv)
     # ----------------
     
+    # Create 100 byte preamble for clock sync
+    preamble = b'\x55' * 1000
+    
+    # Create sync word
+    sync_word = b'\x2D\xD4'
+    
     # Create some arbitrary data to send
-    my_packet = b'\xDE\xAD\xBE\xEF' * 100  # 400 bytes
+    payload = b'\xDE\xAD\xBE\xEF' * 100  # 400 bytes
+    
+    # Create header
+    payload_len = len(payload)
+    len_bytes = struct.pack('!H', payload_len)
+    header = len_bytes + len_bytes
+    
+    data_to_send = preamble + sync_word + header + payload
+    
+    print(f"Total packet length: {len(data_to_send)} bytes")
+    print(f"Payload length: {payload_len} bytes")
+    print(f"Header: {header.hex()}")
     
     # Transmit the data
-    transmit_data(my_packet)
+    transmit_data(data_to_send)
