@@ -33,11 +33,89 @@ options:
     state: enabled
 
 blocks:
+- name: header
+  id: variable
+  parameters:
+    comment: ''
+    value: b'\x01\x90\x01\x90'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 248.0]
+    rotation: 0
+    state: enabled
+- name: payload
+  id: variable
+  parameters:
+    comment: ''
+    value: b'\xDE\xAD\xBE\xEF'*100
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 176.0]
+    rotation: 0
+    state: enabled
+- name: ppm
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '-100'
+    step: '1'
+    stop: '100'
+    value: '11'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 160.0]
+    rotation: 0
+    state: enabled
+- name: preamble
+  id: variable
+  parameters:
+    comment: ''
+    value: b'\x55' * 100
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 104.0]
+    rotation: 0
+    state: enabled
+- name: rx_gain
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '0.1'
+    stop: '100'
+    value: '1.4'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [856, 160.0]
+    rotation: 0
+    state: enabled
 - name: samp_rate
   id: variable
   parameters:
     comment: ''
-    value: '32000'
+    value: 386e3
   states:
     bus_sink: false
     bus_source: false
@@ -57,6 +135,77 @@ blocks:
     coordinate: [264, 24.0]
     rotation: 0
     state: enabled
+- name: squel
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '-100'
+    step: '1'
+    stop: '100'
+    value: '-5'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1008, 144.0]
+    rotation: 0
+    state: enabled
+- name: sync_word
+  id: variable
+  parameters:
+    comment: ''
+    value: b'\x2D\xD4'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [160, 176.0]
+    rotation: 0
+    state: enabled
+- name: tx_gain
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '0'
+    step: '0.01'
+    stop: '1'
+    value: '0.9'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 168.0]
+    rotation: 0
+    state: enabled
+- name: analog_simple_squelch_cc_0
+  id: analog_simple_squelch_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha: '1'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    threshold: squel
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1176, 664.0]
+    rotation: 0
+    state: enabled
 - name: blocks_file_sink_0
   id: blocks_file_sink
   parameters:
@@ -72,8 +221,44 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [872, 648.0]
+    coordinate: [1320, 416.0]
     rotation: 0
+    state: enabled
+- name: blocks_multiply_const_vxx_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: rx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 672.0]
+    rotation: 0
+    state: enabled
+- name: blocks_multiply_const_vxx_0_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: tx_gain
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [536.0, 480]
+    rotation: 270
     state: enabled
 - name: blocks_pack_k_bits_bb_0
   id: blocks_pack_k_bits_bb
@@ -88,7 +273,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [792, 552.0]
+    coordinate: [1168, 432.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle2_0
@@ -109,7 +294,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 392.0]
+    coordinate: [224, 424.0]
     rotation: 0
     state: enabled
 - name: blocks_vector_source_x_0
@@ -123,13 +308,13 @@ blocks:
     repeat: 'True'
     tags: '[]'
     type: byte
-    vector: list(b'\x2D\xD4')
+    vector: list(preamble + sync_word + header + payload)
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [40, 384.0]
+    coordinate: [24, 416.0]
     rotation: 0
     state: enabled
 - name: digital_correlate_access_code_xx_ts_0
@@ -148,7 +333,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [712, 384.0]
+    coordinate: [896, 416.0]
     rotation: 0
     state: enabled
 - name: digital_gfsk_demod_0
@@ -171,7 +356,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 360.0]
+    coordinate: [688, 392.0]
     rotation: 0
     state: enabled
 - name: digital_gfsk_mod_0
@@ -192,7 +377,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [320, 384.0]
+    coordinate: [392, 416.0]
     rotation: 0
     state: enabled
 - name: qtgui_const_sink_x_0
@@ -247,7 +432,7 @@ blocks:
     marker8: '0'
     marker9: '0'
     name: '""'
-    nconnections: '1'
+    nconnections: '2'
     size: '1024'
     style1: '0'
     style10: '0'
@@ -284,100 +469,109 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 728.0]
+    coordinate: [1344, 648.0]
     rotation: 0
     state: enabled
-- name: qtgui_freq_sink_x_0
-  id: qtgui_freq_sink_x
+- name: rational_resampler_xxx_0
+  id: rational_resampler_xxx
   parameters:
     affinity: ''
     alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'False'
-    average: '1.0'
-    axislabels: 'True'
-    bw: samp_rate
-    color1: '"blue"'
-    color10: '"dark blue"'
-    color2: '"red"'
-    color3: '"green"'
-    color4: '"black"'
-    color5: '"cyan"'
-    color6: '"magenta"'
-    color7: '"yellow"'
-    color8: '"dark red"'
-    color9: '"dark green"'
     comment: ''
-    ctrlpanel: 'False'
-    fc: '0'
-    fftsize: '1024'
-    freqhalf: 'True'
-    grid: 'False'
-    gui_hint: ''
-    label: Relative Gain
-    label1: ''
-    label10: ''''''
-    label2: ''''''
-    label3: ''''''
-    label4: ''''''
-    label5: ''''''
-    label6: ''''''
-    label7: ''''''
-    label8: ''''''
-    label9: ''''''
-    legend: 'True'
+    decim: int(samp_rate)
+    fbw: '0'
+    interp: int(10e6)
     maxoutbuf: '0'
     minoutbuf: '0'
-    name: '""'
-    nconnections: '1'
-    norm_window: 'False'
-    showports: 'False'
-    tr_chan: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_tag: '""'
-    type: complex
-    units: dB
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    wintype: window.WIN_BLACKMAN_hARRIS
-    ymax: '10'
-    ymin: '-140'
+    taps: '[]'
+    type: ccc
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 616.0]
+    coordinate: [200, 640.0]
+    rotation: 0
+    state: enabled
+- name: rational_resampler_xxx_0_0
+  id: rational_resampler_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    decim: int(1.8e6)
+    fbw: '0'
+    interp: int(samp_rate)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    taps: '[]'
+    type: ccc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [824, 648.0]
+    rotation: 0
+    state: enabled
+- name: soapy_hackrf_sink_0
+  id: soapy_hackrf_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: 'False'
+    bandwidth: '0'
+    center_freq: 464e6
+    comment: ''
+    dev_args: ''
+    samp_rate: 10e6
+    type: fc32
+    vga: '16'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [424, 664.0]
+    rotation: 0
+    state: enabled
+- name: soapy_rtlsdr_source_0
+  id: soapy_rtlsdr_source
+  parameters:
+    affinity: ''
+    agc: 'False'
+    alias: ''
+    bias: 'False'
+    bufflen: '16384'
+    center_freq: 464e6
+    comment: ''
+    dev_args: ''
+    freq_correction: ppm
+    gain: '20'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: 1.8e6
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [616, 664.0]
     rotation: 0
     state: enabled
 
 connections:
+- [analog_simple_squelch_cc_0, '0', digital_gfsk_demod_0, '0']
+- [analog_simple_squelch_cc_0, '0', qtgui_const_sink_x_0, '1']
+- [blocks_multiply_const_vxx_0, '0', analog_simple_squelch_cc_0, '0']
+- [blocks_multiply_const_vxx_0_0, '0', qtgui_const_sink_x_0, '0']
+- [blocks_multiply_const_vxx_0_0, '0', rational_resampler_xxx_0, '0']
 - [blocks_pack_k_bits_bb_0, '0', blocks_file_sink_0, '0']
 - [blocks_throttle2_0, '0', digital_gfsk_mod_0, '0']
 - [blocks_vector_source_x_0, '0', blocks_throttle2_0, '0']
 - [digital_correlate_access_code_xx_ts_0, '0', blocks_pack_k_bits_bb_0, '0']
 - [digital_gfsk_demod_0, '0', digital_correlate_access_code_xx_ts_0, '0']
-- [digital_gfsk_mod_0, '0', digital_gfsk_demod_0, '0']
-- [digital_gfsk_mod_0, '0', qtgui_const_sink_x_0, '0']
-- [digital_gfsk_mod_0, '0', qtgui_freq_sink_x_0, '0']
+- [digital_gfsk_mod_0, '0', blocks_multiply_const_vxx_0_0, '0']
+- [rational_resampler_xxx_0, '0', soapy_hackrf_sink_0, '0']
+- [rational_resampler_xxx_0_0, '0', blocks_multiply_const_vxx_0, '0']
+- [soapy_rtlsdr_source_0, '0', rational_resampler_xxx_0_0, '0']
 
 metadata:
   file_format: 1
