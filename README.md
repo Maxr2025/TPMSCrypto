@@ -6,28 +6,41 @@ A comprehensive project demonstrating security vulnerabilities in modern TPMS an
 
 Current TPMS implementations transmit unencrypted data with static sensor IDs, enabling vehicle tracking and data interception. This project:
 
-1. Captures and analyzes real TPMS transmissions from a 2012 Subaru
-2. Simulates the vulnerability through binary protocol implementation
-3. Proposes encryption to secure TPMS communications
+1. Simulates the vulnerability through binary protocol implementation
+2. Implements ASCON-128 authenticated encryption to secure TPMS
+2. Simulates complete 4-tire encrypted system with key management
 4. Implements a proof-of-concept with GNU Radio for RF transmission
 
 ## Project Structure
 
-```
-├── baseline_no_encryption    # Simple simulation of TPMS and eavesdropping
-│   ├── sensor.py             # Basic Schrader SMD3MA4 sensor simulation
-│   ├── ecu.py                # ECU receiver
-│   └── eavesdropper.py       # Demonstrates interception
-│
-└── tpms_data_subi.json       # Real HackRF capture data from Oct 26, 2025
-```
+## Project Structure
 
+```
+├── baseline_no_encryption/          #  Vulnerability Demonstration
+│   ├── sensor.py                    # Unencrypted (current) Schrader SMD3MA4 sensor
+│   ├── ecu.py                       # Unencrypted (current) ECU receiver
+│   └── README.md                    # Baseline documentation
+│
+├── secure_ascon_encryption/         # ASCON Implementation 
+│   ├── sensor_encrypted.py          # ASCON-encrypted sensor (4 tires)
+│   ├── ecu_encrypted.py             # Authenticated ECU receiver
+│   ├── pairing.py                   # Diffie-Hellman key establishment
+│   ├── simulation_encrypted/        # Key storage directory
+│   │   ├── sensor_XXXXXX_key.json   # Individual sensor keys
+│   │   └── ecu_key.json             # ECU key database
+│   ├── README.md                    # Encrypted implementation guide
+│
+├── eavesdropper.py                  # demonstrating attack vector
+├── tpms_data_subi.json              # Real HackRF capture (Oct 26, 2024)
+└── Cryptography_Project_Proposal.pdf # Original project proposal
+```
 ## Hardware & Tools Used
 
 - **HackRF One**: Software-defined radio for capturing 315 MHz TPMS signals
 - **rtl_433**: Protocol decoder for analyzing captured transmissions
 - **2012 Subaru**: Test vehicle with Schrader SMD3MA4 sensors
 - **Python 3**: Simulation and protocol implementation
+- **ASCON**: NIST lightweight cryptography standard
 
 
 ## Current Vulnerabilities
@@ -67,7 +80,7 @@ ASCON provides lightweight authenticated encryption suitable for resource-constr
 ## Implementation Stages
 
 **Stage 1**: Vulnerability demonstration  - COMPLETE
-**Stage 2**: ASCON encryption implementation - IN PROGRESS
+**Stage 2**: ASCON encryption implementation - 
 **Stage 3**: Binary protocol with ASCON
 **Stage 4**: GNU Radio RF transmission at 315 MHz
 
