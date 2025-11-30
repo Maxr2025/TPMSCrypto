@@ -1,0 +1,25 @@
+{
+  "sensors": {
+    "0xA0A6F9": {
+      "key": "92d678cd73239878c76fcd58ca391526",
+      "paired_at": "2025-11-30 13:16:20",
+      "tire_position": "front_left"
+    },
+    "0xB1C2D3": {
+      "key": "f7aff14e5271b4bce82952ed80b2afe3",
+      "paired_at": "2025-11-30 13:16:48",
+      "tire_position": "front_right"
+    },
+    "0xC3E4F5": {
+      "key": "6ff05a4979cbb50a10993442e32cc619",
+      "paired_at": "2025-11-30 13:26:04",
+      "tire_position": "rear_left"
+    },
+    "0xD4F6A7": {
+      "key": "5071fdbb97b30634c8a7b2f09f4d4daf",
+      "paired_at": "2025-11-30 13:31:55",
+      "tire_position": "rear_right"
+    }
+  },
+  "key_version": 1
+}

@@ -2,22 +2,39 @@
 
 import socket
 import struct
+import json
 from datetime import datetime
 from ascon import decrypt as ascon_decrypt
 
 LISTEN_PORT = 5000
 LOW_PRESSURE_THRESHOLD = 30.0
 
-try:
-    import json
-    with open('simulation_encrypted/ecu_key.json', 'r') as f:
-        config = json.load(f)
-        first_sensor = next(iter(config['sensors'].values()))
-        SHARED_KEY = bytes.fromhex(first_sensor['key'])
-except FileNotFoundError:
-    SHARED_KEY = bytes.fromhex('000102030405060708090a0b0c0d0e0f')
-
 SYNC_WORD = bytes([0x2D, 0xD4])
+
+# Load all sensor keys from ECU database
+def load_sensor_keys():
+    try:
+        with open('keys/ecu_key.json', 'r') as f:
+            config = json.load(f)
+            sensor_keys = {}
+            for sensor_id_hex, sensor_data in config['sensors'].items():
+                sensor_id = int(sensor_id_hex, 16)
+                sensor_keys[sensor_id] = {
+                    'key': bytes.fromhex(sensor_data['key']),
+                    'position': sensor_data.get('tire_position', 'unknown')
+                }
+            return sensor_keys
+    except FileNotFoundError:
+        # Fallback to single hardcoded key for default sensor
+        return {
+            0xA0A6F9: {
+                'key': bytes.fromhex('000102030405060708090a0b0c0d0e0f'),
+                'position': 'front_left'
+            }
+        }
+
+
+SENSOR_KEYS = load_sensor_keys()
 
 
 def find_sync_word(data):
@@ -43,33 +60,38 @@ def decrypt_and_verify_packet(packet):
     ciphertext_with_tag = packet[offset:offset+21]
     associated_data = b''
     
-    plaintext = ascon_decrypt(
-        key=SHARED_KEY,
-        nonce=nonce,
-        associateddata=associated_data,
-        ciphertext=ciphertext_with_tag
-    )
+    # Try decrypting with each known sensor key
+    for sensor_id, sensor_info in SENSOR_KEYS.items():
+        plaintext = ascon_decrypt(
+            key=sensor_info['key'],
+            nonce=nonce,
+            associateddata=associated_data,
+            ciphertext=ciphertext_with_tag
+        )
+        
+        if plaintext is not None:
+            # Successfully decrypted with this key
+            if len(plaintext) != 5:
+                continue
+            
+            decoded_sensor_id = struct.unpack('>I', b'\x00' + plaintext[0:3])[0]
+            
+            # Verify the sensor ID matches
+            if decoded_sensor_id == sensor_id:
+                flags = plaintext[3]
+                pressure_raw = plaintext[4]
+                pressure_psi = pressure_raw / 2.755
+                
+                return {
+                    'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'id': f"{sensor_id:06X}",
+                    'position': sensor_info['position'],
+                    'flags': flags,
+                    'pressure_PSI': round(pressure_psi, 3),
+                    'authenticated': True
+                }, None
     
-    if plaintext is None:
-        return None, "Authentication failed"
-    
-    if len(plaintext) != 5:
-        return None, f"Invalid plaintext length"
-    
-    sensor_id = struct.unpack('>I', b'\x00' + plaintext[0:3])[0]
-    flags = plaintext[3]
-    pressure_raw = plaintext[4]
-    pressure_psi = pressure_raw / 2.755
-    
-    return {
-        'time': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'model': 'Schrader-SMD3MA4-ASCON',
-        'type': 'TPMS-Encrypted',
-        'id': f"{sensor_id:06X}",
-        'flags': flags,
-        'pressure_PSI': round(pressure_psi, 3),
-        'authenticated': True
-    }, None
+    return None, "Authentication failed - unknown sensor"
 
 
 def process_packet(packet):
@@ -79,10 +101,11 @@ def process_packet(packet):
         print(f"Rejected: {error}")
         return
     
-    print(f"Sensor {decoded['id']}: {decoded['pressure_PSI']:.3f} PSI (flags: {decoded['flags']})")
+    position_display = decoded['position'].replace('_', ' ').title()
+    print(f"[{decoded['id']}] {position_display:12s} {decoded['pressure_PSI']:.3f} PSI (flags: {decoded['flags']})")
     
     if decoded['pressure_PSI'] < LOW_PRESSURE_THRESHOLD:
-        print(f"  WARNING: LOW TIRE PRESSURE")
+        print("WARNING: LOW TIRE PRESSURE")
 
 
 def receive_packet(sock):
@@ -96,7 +119,12 @@ def receive_packet(sock):
 
 
 def run_ecu():
-    print(f"ECU listening on port {LISTEN_PORT}\n")
+    print(f"ECU listening on port {LISTEN_PORT}")
+    print(f"Monitoring {len(SENSOR_KEYS)} sensor(s):")
+    for sensor_id, info in SENSOR_KEYS.items():
+        position = info['position'].replace('_', ' ').title()
+        print(f"  - 0x{sensor_id:06X}: {position}")
+    print()
     
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
