@@ -83,8 +83,8 @@ def encrypt_tpms_packet(sensor_id, pressure_psi, flags=5):
     
     # Build complete packet
     packet = bytearray()
-    packet.extend(PREAMBLE)      # 8 bytes
-    packet.extend(SYNC_WORD)     # 2 bytes
+    #packet.extend(PREAMBLE)      # 8 bytes
+    #packet.extend(SYNC_WORD)     # 2 bytes
     packet.extend(nonce)         # 16 bytes
     packet.extend(ciphertext)    # 21 bytes (5 encrypted + 16 auth tag)
     
